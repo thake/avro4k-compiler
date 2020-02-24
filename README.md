@@ -5,7 +5,7 @@ the avro java compiler.
 
 Unsupported features:
 - Protocol generation
+- Union types other than a Union with null
 
-Planned features:
-- Custom naming configuration
-- Maven plugin
+Additional features:
+- Kotlin data classes may have a different name than avro records.

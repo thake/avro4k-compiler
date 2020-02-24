@@ -1,0 +1,45 @@
+{
+  "type": "record",
+  "name": "RecordWithAlias",
+  "doc": "Test schema changes: this is the 'new' schema actually used to write data",
+  "namespace": "org.apache.avro.specific.test",
+  "aliases": [
+    "RecordAlias1"
+  ],
+  "fields": [
+    {
+      "name": "b",
+      "type": "boolean",
+      "aliases": [
+        "bAlias"
+      ]
+    },
+    {
+      "name": "i64",
+      "type": "int"
+    },
+    {
+      "name": "i32",
+      "type": "int"
+    },
+    {
+      "name": "f64",
+      "type": "long"
+    },
+    {
+      "name": "f32",
+      "type": [
+        "float",
+        "null"
+      ]
+    },
+    {
+      "name": "newfield",
+      "type": "string"
+    },
+    {
+      "name": "h",
+      "type": "string"
+    }
+  ]
+}

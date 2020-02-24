@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "SimpleRecord",
+  "namespace": "my.namespace",
+  "fields": [
+    {
+      "name": "value",
+      "type": "int"
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        "int"
+      ],
+      "doc": "doc"
+    }
+  ]
+}
