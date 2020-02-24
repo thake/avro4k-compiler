@@ -41,17 +41,21 @@ import kotlinx.serialization.*
 #end
 data class ${this.mangle($this.name($schema))} (
 #foreach ($field in $schema.getFields())
-    #if ($field.doc())
-    @AvroDoc("$field.doc()")
-    #end
-    #foreach ($annotation in $this.javaAnnotations($field))
-    @$annotation
-    #end
-    #if($field.hasDefaultValue())@AvroDefault("$this.defaultValue($field)")#end #foreach($alias in $field.aliases())
-@AvroAlias("$alias")
+  #if ($field.doc())
+  @AvroDoc("$field.doc()")
+  #end
+  #foreach ($annotation in $this.javaAnnotations($field))
+  @$annotation
+  #end
+  #if($this.serializerClass($field.schema()).isPresent())
+  @Serializable(with=${this.serializerClass($field.schema()).get()}::class)
+  #end
+  #if($field.hasDefaultValue())
+  @AvroDefault("$this.defaultValue($field)")
+  #end
+  #foreach($alias in $field.aliases())
+  @AvroAlias("$alias")
+  #end
+  #if (${this.privateFields()})private#elseif(${this.internalFields()})internal#elseif(${this.protectedFields()})protected#end #if(${this.isCreateSetters()})var#else val#end ${this.mangle($field.name(), $schema.isError())} : ${this.kotlinUnbox($field.schema())}#if( $foreach.hasNext ),#end
 #end
-    #if (${this.privateFields()})private#elseif(${this.internalFields()})internal#elseif(${this.protectedFields()})protected#end #if(${this.isCreateSetters()})var#else val#end ${this.mangle($field.name(), $schema.isError())} : ${this.kotlinUnbox($field.schema())}#if( $foreach.hasNext ),
-#end
-#end
-
 )

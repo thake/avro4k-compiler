@@ -17,6 +17,7 @@
  */
 package com.github.thake.avro4k.compiler;
 
+import com.sksamuel.avro4k.serializer.InstantSerializer;
 import kotlin.script.experimental.jvm.util.JvmClasspathUtilKt;
 import kotlin.script.experimental.jvm.util.KotlinJars;
 import org.apache.avro.LogicalTypes;
@@ -89,6 +90,10 @@ import static org.junit.Assert.*;
         for (Avro4kCompiler.OutputFile o : outputs) {
             o.writeToDestination(null, dstDir);
         }
+        assertCompilesWithKotlinCompiler(dstDir);
+    }
+
+    private static void assertCompilesWithKotlinCompiler(File dir) {
         CompilerConfiguration configuration = new CompilerConfiguration();
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -96,14 +101,12 @@ import static org.junit.Assert.*;
         configuration.put(CommonConfigurationKeys.MODULE_NAME, "test.module");
         configuration.put(CLIConfigurationKeys.MESSAGE_COLLECTOR_KEY,
                           new PrintingMessageCollector(ps, MessageRenderer.PLAIN_FULL_PATHS, true));
-        //configuration.put(JVMConfigurationKeys.OUTPUT_DIRECTORY, saveClassesDir)
-        //        configuration.put(JVMConfigurationKeys.RETAIN_OUTPUT_IN_MEMORY, true)
         configuration.put(JVMConfigurationKeys.JVM_TARGET, JvmTarget.JVM_1_8);
-        Set<File> classPath = new HashSet<>();
-        classPath.addAll(JvmClasspathUtilKt.classpathFromClassloader(TestAvro4kCompiler.class.getClassLoader(), false));
+        Set<File> classPath = new HashSet<>(
+                JvmClasspathUtilKt.classpathFromClassloader(TestAvro4kCompiler.class.getClassLoader(), false));
         classPath.add(KotlinJars.INSTANCE.getStdlib());
         JvmContentRootsKt.addJvmClasspathRoots(configuration, new ArrayList<>(classPath));
-        ContentRootsKt.addKotlinSourceRoot(configuration, dstDir.getAbsolutePath());
+        ContentRootsKt.addKotlinSourceRoot(configuration, dir.getAbsolutePath());
         KotlinCoreEnvironment env = KotlinCoreEnvironment.createForProduction(new Disposable() {
             @Override public void dispose() {
 
@@ -146,6 +149,10 @@ import static org.junit.Assert.*;
         Avro4kCompiler compiler = createCompiler();
         compiler.compileToDestination(this.src, OUTPUT_DIR.getRoot());
         assertTrue(new File(OUTPUT_DIR.getRoot(), "SimpleRecord.kt").exists());
+    }
+
+    @Test public void testLogicalTypesWithNull() {
+
     }
 
     @Test public void testPublicFieldVisibility() throws IOException {
@@ -242,66 +249,88 @@ import static org.junit.Assert.*;
         assertEquals("Found the wrong number of setters", 2, foundSetters);
     }
 
-    private void assertRenamedClasses(File file, Map<String, String> rules, final String packageName, final String className,
-            final String namespace, final String avroName) throws IOException {
+    @Test public void renamedMultipleClasses() throws IOException {
+        assertRenamedClasses(new File("src/test/resources/simple_record_with_subtype.avsc"),
+                             Collections.singletonMap("my.namespace.(\\w+)Record", "com.github.thake.avro4k.test.$1"),
+                             new RenamedClass("com.github.thake.avro4k.test", "Simple", "my.namespace", "SimpleRecord"),
+                             new RenamedClass("com.github.thake.avro4k.test", "Inner", "my.namespace", "InnerRecord"));
+
+    }
+
+    private void assertRenamedClasses(File file, Map<String, String> rules, RenamedClass... renamedClasses)
+            throws IOException {
         Schema.Parser parser = new Schema.Parser();
         Schema schema = parser.parse(file);
         Avro4kCompiler compiler = new Avro4kCompiler(schema);
         String velocityTemplateDir = "src/main/velocity/com/github/thake/avro4k/compiler/templates/";
         compiler.setTemplateDir(velocityTemplateDir);
         compiler.setRenamedClasses(rules);
+
         compiler.compileToDestination(file, this.OUTPUT_DIR.getRoot());
         int foundSetters = 0;
         String readPackageName = null;
         String readClassName = null;
         String namespaceAnnotation = null;
         String nameAnnotation = null;
-        //Read file from expected folder
-        File outputFile = new File(this.OUTPUT_DIR.getRoot(), packageName.replace(".", "/") + "/" + className + ".kt");
-        assertTrue("Output file hasn't been generated or has been generated in the wrong package. Expected path: "
-                           + outputFile.getAbsolutePath(), outputFile.exists());
-        try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // We should find the setter in the main class
-                line = line.trim();
-                if (line.startsWith("package ")) {
-                    readPackageName = line.substring("package".length()).trim();
-                } else if (line.startsWith("data class")) {
-                    Matcher matcher = Pattern.compile("data class (\\w+) .*").matcher(line);
-                    assertTrue(matcher.find());
-                    readClassName = matcher.group(1);
-                } else if (line.startsWith("@AvroNamespace")) {
-                    Matcher matcher = Pattern.compile("@AvroNamespace\\(\"([\\w\\.]*)\"\\).*").matcher(line);
-                    assertTrue(matcher.find());
-                    if (matcher.groupCount() == 1) {
-                        namespaceAnnotation = matcher.group(1);
-                    } else {
-                        namespaceAnnotation = "";
+        for (RenamedClass renamedClass : renamedClasses) {
+            //Read file from expected folder
+            File outputFile = new File(this.OUTPUT_DIR.getRoot(),
+                                       renamedClass.packageName.replace(".", "/") + "/" + renamedClass.className + ".kt");
+            assertTrue("Output file hasn't been generated or has been generated in the wrong package. Expected path: "
+                               + outputFile.getAbsolutePath(), outputFile.exists());
+            try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    // We should find the setter in the main class
+                    line = line.trim();
+                    if (line.startsWith("package ")) {
+                        readPackageName = line.substring("package".length()).trim();
+                    } else if (line.startsWith("data class")) {
+                        Matcher matcher = Pattern.compile("data class (\\w+) .*").matcher(line);
+                        assertTrue(matcher.find());
+                        readClassName = matcher.group(1);
+                    } else if (line.startsWith("@AvroNamespace")) {
+                        Matcher matcher = Pattern.compile("@AvroNamespace\\(\"([\\w.]*)\"\\).*").matcher(line);
+                        assertTrue(matcher.find());
+                        if (matcher.groupCount() == 1) {
+                            namespaceAnnotation = matcher.group(1);
+                        } else {
+                            namespaceAnnotation = "";
+                        }
+                    } else if (line.startsWith("@AvroName")) {
+                        Matcher matcher = Pattern.compile("@AvroName\\(\"([\\w.]+)\"\\).*").matcher(line);
+                        assertTrue(matcher.find());
+                        nameAnnotation = matcher.group(1);
                     }
-                } else if (line.startsWith("@AvroName")) {
-                    Matcher matcher = Pattern.compile("@AvroName\\(\"([\\w\\.]+)\"\\).*").matcher(line);
-                    assertTrue(matcher.find());
-                    nameAnnotation = matcher.group(1);
                 }
             }
+            assertEquals(renamedClass.packageName, readPackageName);
+            assertEquals(renamedClass.className, readClassName);
+            assertEquals(renamedClass.namespace, namespaceAnnotation);
+            assertEquals(renamedClass.avroName, nameAnnotation);
         }
-        assertEquals(packageName, readPackageName);
-        assertEquals(className, readClassName);
-        assertEquals(namespace, namespaceAnnotation);
-        assertEquals(avroName, nameAnnotation);
+        assertCompilesWithKotlinCompiler(this.OUTPUT_DIR.getRoot());
     }
 
     @Test public void testRenamedClasses() throws IOException {
         assertRenamedClasses(this.src, Collections.singletonMap("SimpleRecord", "com.github.thake.SimpleOtherRecord"),
-                             "com.github.thake", "SimpleOtherRecord", "", "SimpleRecord");
+                             new RenamedClass("com.github.thake", "SimpleOtherRecord", "", "SimpleRecord"));
         assertRenamedClasses(new File("src/test/resources/simple_record_with_namespace.avsc"),
-                             Collections.singletonMap("SimpleRecord", "SimpleOtherRecord"), "my.namespace",
-                             "SimpleOtherRecord", "my.namespace", "SimpleRecord");
+                             Collections.singletonMap("SimpleRecord", "SimpleOtherRecord"),
+                             new RenamedClass("my.namespace", "SimpleOtherRecord", "my.namespace", "SimpleRecord"));
         assertRenamedClasses(new File("src/test/resources/simple_record_with_namespace.avsc"),
-                             Collections.singletonMap("my.namespace.(\\w+)Record", "other.prefix.$1"), "other.prefix",
-                             "Simple", "my.namespace", "SimpleRecord");
+                             Collections.singletonMap("my.namespace.(\\w+)Record", "other.prefix.$1"),
+                             new RenamedClass("other.prefix", "Simple", "my.namespace", "SimpleRecord"));
 
+    }
+
+    @Test public void testNullableLogicalTypesJavaUnboxDecimalTypesEnabled() throws Exception {
+        Avro4kCompiler compiler = createCompiler();
+
+        // Nullable types should return boxed types instead of primitive types
+        Schema nullableDecimalSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
+                .addToSchema(Schema.create(Schema.Type.LONG)));
+        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema1), "java.time.Instant?");
     }
 
     @Test public void testSettersNotCreatedWhenOptionTurnedOff() throws IOException {
@@ -365,15 +394,10 @@ import static org.junit.Assert.*;
                      compiler.kotlinType(timeSchema));
         assertEquals("Should use java.time.Instant for timestamp-millis type", "java.time.Instant",
                      compiler.kotlinType(timestampSchema));
-        assertEquals("Should use java.time.LocalTime for time-micros type", "java.time.LocalTime",
-                     compiler.kotlinType(timeMicrosSchema));
-        assertEquals("Should use java.time.Instant for timestamp-micros type", "java.time.Instant",
-                     compiler.kotlinType(timestampMicrosSchema));
     }
 
     @Test public void testJavaUnbox() throws Exception {
         Avro4kCompiler compiler = createCompiler();
-        compiler.setEnableDecimalLogicalType(false);
 
         Schema intSchema = Schema.create(Schema.Type.INT);
         Schema longSchema = Schema.create(Schema.Type.LONG);
@@ -401,35 +425,37 @@ import static org.junit.Assert.*;
                      compiler.kotlinUnbox(timestampSchema));
     }
 
-    @Test public void testNullableLogicalTypesJavaUnboxDecimalTypesEnabled() throws Exception {
+    @Test public void testNullableLogicalTypesKotlinSerializer() throws IOException {
         Avro4kCompiler compiler = createCompiler();
-        compiler.setEnableDecimalLogicalType(true);
 
-        // Nullable types should return boxed types instead of primitive types
-        Schema nullableDecimalSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.decimal(9, 2)
-                .addToSchema(Schema.create(Schema.Type.BYTES)));
-        Schema nullableDecimalSchema2 = Schema.createUnion(
-                LogicalTypes.decimal(9, 2).addToSchema(Schema.create(Schema.Type.BYTES)), Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema1), "java.math.BigDecimal?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema2), "java.math.BigDecimal?");
+        // Nullable types should return serializer for logical type
+        Schema nullablInstant = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
+                .addToSchema(Schema.create(Schema.Type.LONG)));
+        assertEquals("Should return instant serializer", InstantSerializer.class.getCanonicalName(),
+                     compiler.serializerClass(nullablInstant).orElse(null));
     }
 
-    @Test public void testNullableLogicalTypesJavaUnboxDecimalTypesDisabled() throws Exception {
+    @Test public void testDefaultValueAsString() throws IOException {
         Avro4kCompiler compiler = createCompiler();
-        compiler.setEnableDecimalLogicalType(false);
-
-        // Since logical decimal types are disabled, a ByteBuffer is expected.
-        Schema nullableDecimalSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.decimal(9, 2)
-                .addToSchema(Schema.create(Schema.Type.BYTES)));
-        Schema nullableDecimalSchema2 = Schema.createUnion(
-                LogicalTypes.decimal(9, 2).addToSchema(Schema.create(Schema.Type.BYTES)), Schema.create(Schema.Type.NULL));
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema1), "ByteArray?");
-        assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableDecimalSchema2), "ByteArray?");
+        Schema schema = SchemaBuilder.record("record")
+                .fields()
+                .name("nullDefault")
+                .type(SchemaBuilder.unionOf().nullType().and().longType().endUnion())
+                .withDefault(null)
+                .name("intDefault")
+                .type(Schema.create(Schema.Type.INT))
+                .withDefault(1)
+                .name("longDefault")
+                .type(Schema.create(Schema.Type.LONG))
+                .withDefault(1l)
+                .endRecord();
+        assertEquals("null", compiler.defaultValue(schema.getField("nullDefault")));
+        assertEquals("1", compiler.defaultValue(schema.getField("intDefault")));
+        assertEquals("1", compiler.defaultValue(schema.getField("longDefault")));
     }
 
     @Test public void testNullableTypesJavaUnbox() throws Exception {
         Avro4kCompiler compiler = createCompiler();
-        compiler.setEnableDecimalLogicalType(false);
 
         // Nullable types should return boxed types instead of primitive types
         Schema nullableIntSchema1 = Schema.createUnion(Schema.create(Schema.Type.NULL), Schema.create(Schema.Type.INT));
@@ -467,6 +493,20 @@ import static org.junit.Assert.*;
                 new File("src/test/resources/union_and_fixed_fields.avsc"));
         assertCompilesWithKotlinCompiler(new File(this.outputFile, name.getMethodName()),
                                          new Avro4kCompiler(unionTypesWithMultipleFields).compile());
+    }
+
+    private static class RenamedClass {
+        String packageName;
+        String className;
+        String namespace;
+        String avroName;
+
+        public RenamedClass(String packageName, String className, String namespace, String avroName) {
+            this.packageName = packageName;
+            this.className = className;
+            this.namespace = namespace;
+            this.avroName = avroName;
+        }
     }
 
     @Test public void testLogicalTypesWithMultipleFieldsJsr310DateTime() throws Exception {

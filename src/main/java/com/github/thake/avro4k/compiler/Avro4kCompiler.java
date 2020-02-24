@@ -17,18 +17,22 @@
  */
 package com.github.thake.avro4k.compiler;
 
-import org.apache.avro.*;
+import org.apache.avro.JsonProperties;
+import org.apache.avro.Protocol;
+import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
-import org.apache.avro.data.TimeConversions;
-import org.apache.avro.specific.SpecificData;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -57,7 +61,7 @@ public class Avro4kCompiler {
         ERROR_RESERVED_WORDS.addAll(ACCESSOR_MUTATOR_RESERVED_WORDS);
     }
 
-    private final SpecificData specificData = new SpecificData();
+    private List<LogicalTypeConversion> logicalTypeConversions = new ArrayList<>();
     private final Set<Schema> queue = new HashSet<>();
     private Protocol protocol;
     private VelocityEngine velocityEngine;
@@ -65,7 +69,6 @@ public class Avro4kCompiler {
     private FieldVisibility fieldVisibility = FieldVisibility.PUBLIC;
     private boolean createSetters = false;
     private String outputCharacterEncoding;
-    private boolean enableDecimalLogicalType = false;
     private String suffix = ".kt";
     private List<Object> additionalVelocityTools = new ArrayList<>();
     private Map<String, String> renamedClasses = new HashMap<>();
@@ -249,13 +252,7 @@ public class Avro4kCompiler {
         this.createSetters = createSetters;
     }
 
-    /**
-     * Set to true to use {@link java.math.BigDecimal} instead of
-     * {@link java.nio.ByteBuffer} for logical type "decimal"
-     */
-    public void setEnableDecimalLogicalType(boolean enableDecimalLogicalType) {
-        this.enableDecimalLogicalType = enableDecimalLogicalType;
-    }
+
 
     private void initializeVelocity() {
         this.velocityEngine = new VelocityEngine();
@@ -272,16 +269,20 @@ public class Avro4kCompiler {
 
         // Set whitespace gobbling to Backward Compatible (BC)
         // https://velocity.apache.org/engine/2.0/developer-guide.html#space-gobbling
-        velocityEngine.setProperty("space.gobbling", "bc");
+        velocityEngine.setProperty("parser.space_gobbling", RuntimeConstants.SpaceGobbling.LINES.name());
     }
 
     private void initializeSpecificData() {
-        specificData.addLogicalTypeConversion(new TimeConversions.DateConversion());
-        specificData.addLogicalTypeConversion(new TimeConversions.TimeMillisConversion());
-        specificData.addLogicalTypeConversion(new TimeConversions.TimeMicrosConversion());
-        specificData.addLogicalTypeConversion(new TimeConversions.TimestampMillisConversion());
-        specificData.addLogicalTypeConversion(new TimeConversions.TimestampMicrosConversion());
-        specificData.addLogicalTypeConversion(new Conversions.DecimalConversion());
+        addLogicalTypeConversion(
+                new LogicalTypeConversion("date", LocalDate.class, "com.sksamuel.avro4k.serializer.LocalDateSerializer"));
+        addLogicalTypeConversion(new LogicalTypeConversion("time-millis", LocalTime.class,
+                                                           "com.sksamuel.avro4k.serializer.LocalTimeSerializer"));
+        addLogicalTypeConversion(new LogicalTypeConversion("timestamp-millis", Instant.class,
+                                                           "com.sksamuel.avro4k.serializer.InstantSerializer"));
+    }
+
+    public void addLogicalTypeConversion(LogicalTypeConversion logicalTypeConversion) {
+        logicalTypeConversions.add(0, logicalTypeConversion);
     }
 
     /**
@@ -416,11 +417,29 @@ public class Avro4kCompiler {
         return kotlinType(schema, true);
     }
 
+    public Optional<String> serializerClass(Schema schema) {
+        return getLogicalTypeConversion(schema).map(LogicalTypeConversion::getKotlinSerializer);
+    }
+
+    private boolean isNullableUnion(Schema schema) {
+        if (schema.getType() == Schema.Type.UNION) {
+            List<Schema> types = schema.getTypes();
+            return types.size() == 2 && types.contains(NULL_SCHEMA);
+        } else {
+            return false;
+        }
+    }
+
+    private Schema extractNonNullableType(Schema schema) {
+        List<Schema> types = schema.getTypes();
+        return types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0);
+    }
+
     private String kotlinType(Schema schema, boolean checkConvertedLogicalType) {
         if (checkConvertedLogicalType) {
-            String convertedLogicalType = getConvertedLogicalType(schema);
-            if (convertedLogicalType != null) {
-                return convertedLogicalType;
+            Optional<String> convertedLogicalType = getConvertedLogicalType(schema);
+            if (convertedLogicalType.isPresent()) {
+                return convertedLogicalType.get();
             }
         }
 
@@ -428,15 +447,15 @@ public class Avro4kCompiler {
         case RECORD:
         case ENUM:
         case FIXED:
-            return mangle(schema.getFullName());
+            return mangle(fullName(schema));
         case ARRAY:
             return "kotlin.collections.List<" + kotlinType(schema.getElementType()) + ">";
         case MAP:
             return "kotlin.collections.Map<String," + kotlinType(schema.getValueType()) + ">";
         case UNION:
             List<Schema> types = schema.getTypes(); // elide unions with null
-            if ((types.size() == 2) && types.contains(NULL_SCHEMA))
-                return kotlinType(types.get(types.get(0).equals(NULL_SCHEMA) ? 1 : 0)) + "?";
+            if (isNullableUnion(schema))
+                return kotlinType(extractNonNullableType(schema)) + "?";
             return "Any";
         case STRING:
             return "String";
@@ -459,14 +478,17 @@ public class Avro4kCompiler {
         }
     }
 
-    private String getConvertedLogicalType(Schema schema) {
-        if (enableDecimalLogicalType || !(schema.getLogicalType() instanceof LogicalTypes.Decimal)) {
-            Conversion<?> conversion = specificData.getConversionFor(schema.getLogicalType());
-            if (conversion != null) {
-                return conversion.getConvertedType().getName();
-            }
-        }
-        return null;
+    private Optional<LogicalTypeConversion> getLogicalTypeConversion(Schema schema) {
+        Schema lookupSchema = isNullableUnion(schema) ? extractNonNullableType(schema) : schema;
+        return lookupSchema.getLogicalType() == null ?
+                Optional.empty() :
+                this.logicalTypeConversions.stream()
+                        .filter(type -> type.getLogicalTypeName().equals(lookupSchema.getLogicalType().getName()))
+                        .findFirst();
+    }
+
+    private Optional<String> getConvertedLogicalType(Schema schema) {
+        return getLogicalTypeConversion(schema).map(LogicalTypeConversion::getKotlinType);
     }
 
     private String getMappedName(Schema schema) {
@@ -479,6 +501,7 @@ public class Avro4kCompiler {
         }
         return null;
     }
+
 
     public String namespace(Schema schema) {
         String newFullName = getMappedName(schema);
@@ -496,6 +519,11 @@ public class Avro4kCompiler {
         return newFullName.indexOf('.') != -1 ? newFullName.substring(newFullName.lastIndexOf('.') + 1) : newFullName;
     }
 
+    public String fullName(Schema schema) {
+        String mappedName = getMappedName(schema);
+        return mappedName != null ? mappedName : schema.getFullName();
+    }
+
     public boolean isNameMapped(Schema schema) {
         return getMappedName(schema) != null;
     }
@@ -504,15 +532,20 @@ public class Avro4kCompiler {
         Object defaultvalue = field.defaultVal();
         if (JsonProperties.NULL_VALUE == defaultvalue) {
             return "null";
+        } else {
+            return defaultvalue.toString();
         }
-        field.defaultVal().toString();
-        return "null";
     }
 
     public String kotlinUnbox(Schema schema) {
-        String convertedLogicalType = getConvertedLogicalType(schema);
-        if (convertedLogicalType != null) {
-            return convertedLogicalType;
+        Optional<String> convertedLogicalType = getConvertedLogicalType(schema);
+        if (convertedLogicalType.isPresent()) {
+            String nonNullableType = convertedLogicalType.get();
+            if (isNullableUnion(schema)) {
+                return nonNullableType + "?";
+            } else {
+                return nonNullableType;
+            }
         }
 
         switch (schema.getType()) {
