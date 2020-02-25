@@ -15,15 +15,12 @@
    See the License for the specific language governing permissions and
    limitations under the License.
 -->
-<project
-        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-        xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-        xmlns="http://maven.apache.org/POM/4.0.0">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>com.github.thake.avro4k</groupId>
     <artifactId>avro4k-parent</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
 
 
     <name>Avro source code generator for kotlin</name>
@@ -42,7 +39,8 @@
         <url>https://github.com/thake/avro4k-compiler</url>
         <connection>scm:git:git://github.com/thake/avro4k-compiler.git</connection>
         <developerConnection>scm:git:git@github.com:thake/avro4k-compiler.git</developerConnection>
-    </scm>
+      <tag>v0.0.1</tag>
+  </scm>
     <developers>
         <developer>
             <id>thake</id>
