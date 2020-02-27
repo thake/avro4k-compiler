@@ -29,8 +29,8 @@ data class ${this.mangle($this.name($schema))} (
   #foreach ($annotation in $this.javaAnnotations($field))
   @$annotation
   #end
-  #if($this.serializerClass($field.schema()).isPresent())
-  @Serializable(with=${this.serializerClass($field.schema()).get()}::class)
+  #if($this.serializerAnnotation($field.schema()).isPresent())
+    $this.serializerAnnotation($field.schema()).get()
   #end
   #if($field.hasDefaultValue())
   @AvroDefault(#if(${this.isDefaultValueNull($field)})Avro.NULL#else"$this.defaultValue($field)"#end)

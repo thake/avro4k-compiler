@@ -19,7 +19,7 @@
 package com.github.thake.avro4k.maven;
 
 import com.github.thake.avro4k.compiler.Avro4kCompiler;
-import com.github.thake.avro4k.compiler.LogicalTypeConversion;
+import com.github.thake.avro4k.compiler.SerializableLogicalTypeConversion;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -142,7 +142,8 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
     compiler.setAdditionalVelocityTools(instantiateAdditionalVelocityTools());
     for (Conversion conv : logicalTypeConversions) {
       compiler.addLogicalTypeConversion(
-              new LogicalTypeConversion(conv.getLogicalTypeName(), conv.getKotlinType(), conv.getKotlinSerializer()));
+              new SerializableLogicalTypeConversion(conv.getLogicalTypeName(), conv.getKotlinType(),
+                                                    conv.getKotlinSerializer()));
     }
     Map<String, String> classRenameRules = new HashMap<>();
     for (RenamedClass clazz : renamedClasses) {

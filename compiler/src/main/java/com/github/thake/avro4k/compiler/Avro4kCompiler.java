@@ -272,12 +272,13 @@ public class Avro4kCompiler {
     }
 
     private void initializeSpecificData() {
-        addLogicalTypeConversion(
-                new LogicalTypeConversion("date", LocalDate.class, "com.sksamuel.avro4k.serializer.LocalDateSerializer"));
-        addLogicalTypeConversion(new LogicalTypeConversion("time-millis", LocalTime.class,
-                                                           "com.sksamuel.avro4k.serializer.LocalTimeSerializer"));
-        addLogicalTypeConversion(new LogicalTypeConversion("timestamp-millis", Instant.class,
-                                                           "com.sksamuel.avro4k.serializer.InstantSerializer"));
+        addLogicalTypeConversion(new SerializableLogicalTypeConversion("date", LocalDate.class,
+                                                                       "com.sksamuel.avro4k.serializer.LocalDateSerializer"));
+        addLogicalTypeConversion(new SerializableLogicalTypeConversion("time-millis", LocalTime.class,
+                                                                       "com.sksamuel.avro4k.serializer.LocalTimeSerializer"));
+        addLogicalTypeConversion(new SerializableLogicalTypeConversion("timestamp-millis", Instant.class,
+                                                                       "com.sksamuel.avro4k.serializer.InstantSerializer"));
+        addLogicalTypeConversion(new DecimalLogicalTypeConversion());
     }
 
     public void addLogicalTypeConversion(LogicalTypeConversion logicalTypeConversion) {
@@ -421,8 +422,11 @@ public class Avro4kCompiler {
         return kotlinType(schema, true);
     }
 
-    public Optional<String> serializerClass(Schema schema) {
-        return getLogicalTypeConversion(schema).map(LogicalTypeConversion::getKotlinSerializer);
+    public Optional<String> serializerAnnotation(Schema schema) {
+        return getLogicalTypeConversion(schema).map(logicalType -> {
+            Schema lookupSchema = isNullableUnion(schema) ? extractNonNullableType(schema) : schema;
+            return logicalType.getSerializationAnnotation(lookupSchema);
+        });
     }
 
     private boolean isNullableUnion(Schema schema) {

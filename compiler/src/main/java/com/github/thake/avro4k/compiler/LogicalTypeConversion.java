@@ -1,29 +1,11 @@
 package com.github.thake.avro4k.compiler;
 
-public class LogicalTypeConversion {
-    private String logicalTypeName;
-    private String kotlinType;
-    private String kotlinSerializer;
+import org.apache.avro.Schema;
 
-    public LogicalTypeConversion(String logicalTypeName, String kotlinType, String kotlinSerializer) {
-        this.logicalTypeName = logicalTypeName;
-        this.kotlinType = kotlinType;
-        this.kotlinSerializer = kotlinSerializer;
-    }
+public interface LogicalTypeConversion {
+    String getLogicalTypeName();
 
-    public LogicalTypeConversion(String logicalTypeName, Class<?> kotlinType, String kotlinSerializer) {
-        this(logicalTypeName, kotlinType.getCanonicalName(), kotlinSerializer);
-    }
+    String getKotlinType();
 
-    public String getLogicalTypeName() {
-        return logicalTypeName;
-    }
-
-    public String getKotlinType() {
-        return kotlinType;
-    }
-
-    public String getKotlinSerializer() {
-        return kotlinSerializer;
-    }
+    String getSerializationAnnotation(Schema schema);
 }

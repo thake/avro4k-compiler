@@ -18,6 +18,7 @@
 package com.github.thake.avro4k.compiler;
 
 import org.apache.avro.Schema;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,9 +47,15 @@ public class SchemaTask extends ProtocolTask {
     }
 
     @Override protected void doCompile(File src, File dest) throws IOException {
-        Schema.Parser parser = new Schema.Parser();
-        Schema schema = parser.parse(src);
-        Avro4kCompiler compiler = new Avro4kCompiler(schema);
-        compiler.compileToDestination(src, dest);
+        try {
+            Schema.Parser parser = new Schema.Parser();
+            Schema schema = parser.parse(src);
+            Avro4kCompiler compiler = new Avro4kCompiler(schema);
+            compiler.compileToDestination(src, dest);
+        } catch (IOException | RuntimeException e) {
+            LoggerFactory.getLogger(SchemaTask.class).error("Couldn't compile file " + src, e);
+            throw e;
+        }
+
     }
 }

@@ -424,8 +424,9 @@ public class TestAvro4kCompiler {
         // Nullable types should return serializer for logical type
         Schema nullablInstant = Schema.createUnion(Schema.create(Schema.Type.NULL), LogicalTypes.timestampMillis()
                 .addToSchema(Schema.create(Schema.Type.LONG)));
-        assertEquals("Should return instant serializer", InstantSerializer.class.getCanonicalName(),
-                     compiler.serializerClass(nullablInstant).orElse(null));
+        assertEquals("Should return instant serializer",
+                     "@Serializable(with=" + InstantSerializer.class.getCanonicalName() + "::class)",
+                     compiler.serializerAnnotation(nullablInstant).orElse(null));
     }
 
     @Test public void testDefaultValueAsString() throws IOException {

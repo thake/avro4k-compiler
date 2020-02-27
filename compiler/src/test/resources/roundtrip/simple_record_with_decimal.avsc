@@ -1,0 +1,24 @@
+{
+  "type": "record",
+  "name": "SimpleRecordWithDecimal",
+  "namespace": "roundtrip",
+  "fields": [
+    {
+      "name": "value",
+      "type": "int"
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 4,
+          "scale": 2
+        }
+      ],
+      "doc": "doc"
+    }
+  ]
+}
