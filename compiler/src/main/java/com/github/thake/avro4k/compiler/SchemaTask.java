@@ -26,14 +26,23 @@ import java.io.IOException;
  * Ant task to generate Java interface and classes for a protocol.
  */
 public class SchemaTask extends ProtocolTask {
+
     public static void main(String[] args) throws IOException {
         if (args.length < 2) {
             System.err.println("Usage: SchemaTask <schema.avsc>... <output-folder>");
             System.exit(1);
         }
         File dst = new File(args[args.length - 1]);
-        for (int i = 0; i < args.length - 1; i++)
-            new SchemaTask().doCompile(new File(args[i]), dst);
+        for (int i = 0; i < args.length - 1; i++) {
+            File file = new File(args[i]);
+            if (file.isDirectory()) {
+                for (File inDirFile : file.listFiles()) {
+                    new SchemaTask().doCompile(inDirFile, dst);
+                }
+            } else {
+                new SchemaTask().doCompile(new File(args[i]), dst);
+            }
+        }
     }
 
     @Override protected void doCompile(File src, File dest) throws IOException {

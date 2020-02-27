@@ -37,13 +37,10 @@ import org.jetbrains.kotlin.config.CommonConfigurationKeys;
 import org.jetbrains.kotlin.config.CompilerConfiguration;
 import org.jetbrains.kotlin.config.JVMConfigurationKeys;
 import org.jetbrains.kotlin.config.JvmTarget;
-import org.junit.Before;
-import org.junit.Rule;
-import org.junit.Test;
-import org.junit.rules.TemporaryFolder;
-import org.junit.rules.TestName;
-import org.junit.runner.RunWith;
-import org.junit.runners.JUnit4;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
+import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -54,11 +51,9 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.hamcrest.CoreMatchers.equalTo;
-import static org.hamcrest.CoreMatchers.not;
-import static org.junit.Assert.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-@RunWith(JUnit4.class) public class TestAvro4kCompiler {
+public class TestAvro4kCompiler {
     private static final int JVM_METHOD_ARG_LIMIT = 255;
 
     /*
@@ -66,10 +61,7 @@ import static org.junit.Assert.*;
      */
     protected static final int MAX_FIELD_PARAMETER_UNIT_COUNT = JVM_METHOD_ARG_LIMIT - 1;
     private static final Logger LOG = LoggerFactory.getLogger(TestAvro4kCompiler.class);
-
-    @Rule public TemporaryFolder OUTPUT_DIR = new TemporaryFolder();
-
-    @Rule public TestName name = new TestName();
+    @TempDir public File OUTPUT_DIR;
 
     private File outputFile;
     private File src = new File("src/test/resources/simple_record.avsc");
@@ -132,8 +124,8 @@ import static org.junit.Assert.*;
         return sb.endRecord();
     }
 
-    @Before public void setUp() {
-        this.outputFile = new File(this.OUTPUT_DIR.getRoot(), "SimpleRecord.kt");
+    @BeforeEach public void setUp() {
+        this.outputFile = new File(this.OUTPUT_DIR, "SimpleRecord.kt");
     }
 
     private Avro4kCompiler createCompiler() throws IOException {
@@ -147,8 +139,8 @@ import static org.junit.Assert.*;
 
     @Test public void testCanReadTemplateFilesOnTheFilesystem() throws IOException {
         Avro4kCompiler compiler = createCompiler();
-        compiler.compileToDestination(this.src, OUTPUT_DIR.getRoot());
-        assertTrue(new File(OUTPUT_DIR.getRoot(), "SimpleRecord.kt").exists());
+        compiler.compileToDestination(this.src, OUTPUT_DIR);
+        assertTrue(new File(OUTPUT_DIR, "SimpleRecord.kt").exists());
     }
 
     @Test public void testLogicalTypesWithNull() {
@@ -160,7 +152,7 @@ import static org.junit.Assert.*;
         compiler.setFieldVisibility(Avro4kCompiler.FieldVisibility.PUBLIC);
         assertTrue(compiler.publicFields());
         assertFalse(compiler.privateFields());
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {
             String line;
@@ -169,30 +161,30 @@ import static org.junit.Assert.*;
                 // nor a private field declaration. Since the nested builder uses private
                 // fields, we cannot do the second check.
                 line = line.trim();
-                assertFalse("Line started with a deprecated field declaration: " + line,
-                            line.startsWith("@Deprecated public int value"));
+                assertFalse(line.startsWith("@Deprecated public int value"),
+                            "Line started with a deprecated field declaration: " + line);
             }
         }
     }
 
-    @Test public void testMaxValidParameterCounts() throws Exception {
+    @Test public void testMaxValidParameterCounts(TestInfo testInfo) throws Exception {
         Schema validSchema1 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT, 0);
-        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR.getRoot(), name.getMethodName() + "1"),
+        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "1"),
                                          new Avro4kCompiler(validSchema1).compile());
 
         Schema validSchema2 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT - 2, 1);
-        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR.getRoot(), name.getMethodName() + "2"),
+        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "2"),
                                          new Avro4kCompiler(validSchema1).compile());
     }
 
-    @Test public void testInvalidParameterCounts() throws Exception {
+    @Test public void testInvalidParameterCounts(TestInfo testInfo) throws Exception {
         Schema invalidSchema1 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT + 1, 0);
         Avro4kCompiler compiler = new Avro4kCompiler(invalidSchema1);
-        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR.getRoot(), name.getMethodName() + "1"), compiler.compile());
+        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "1"), compiler.compile());
 
         Schema invalidSchema2 = createSampleRecordSchema(MAX_FIELD_PARAMETER_UNIT_COUNT, 10);
         compiler = new Avro4kCompiler(invalidSchema2);
-        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR.getRoot(), name.getMethodName() + "2"), compiler.compile());
+        assertCompilesWithKotlinCompiler(new File(OUTPUT_DIR, testInfo.getDisplayName() + "2"), compiler.compile());
     }
 
     @Test public void testMaxParameterCounts() throws Exception {
@@ -214,7 +206,7 @@ import static org.junit.Assert.*;
         compiler.setFieldVisibility(Avro4kCompiler.FieldVisibility.PRIVATE);
         assertFalse(compiler.publicFields());
         assertTrue(compiler.privateFields());
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {
             String line = null;
@@ -222,9 +214,9 @@ import static org.junit.Assert.*;
                 // No line, once trimmed, should start with a public field declaration
                 // or with a deprecated public field declaration
                 line = line.trim();
-                assertFalse("Line started with a public field declaration: " + line, line.startsWith("public int value"));
-                assertFalse("Line started with a deprecated field declaration: " + line,
-                            line.startsWith("@Deprecated public int value"));
+                assertFalse(line.startsWith("public int value"), "Line started with a public field declaration: " + line);
+                assertFalse(line.startsWith("@Deprecated public int value"),
+                            "Line started with a deprecated field declaration: " + line);
             }
         }
     }
@@ -233,7 +225,7 @@ import static org.junit.Assert.*;
         Avro4kCompiler compiler = createCompiler();
         assertFalse(compiler.isCreateSetters());
         compiler.setCreateSetters(true);
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         int foundSetters = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {
@@ -246,7 +238,7 @@ import static org.junit.Assert.*;
                 }
             }
         }
-        assertEquals("Found the wrong number of setters", 2, foundSetters);
+        assertEquals(2, foundSetters, "Found the wrong number of setters");
     }
 
     @Test public void renamedMultipleClasses() throws IOException {
@@ -266,7 +258,7 @@ import static org.junit.Assert.*;
         compiler.setTemplateDir(velocityTemplateDir);
         compiler.setRenamedClasses(rules);
 
-        compiler.compileToDestination(file, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(file, this.OUTPUT_DIR);
         int foundSetters = 0;
         String readPackageName = null;
         String readClassName = null;
@@ -274,10 +266,11 @@ import static org.junit.Assert.*;
         String nameAnnotation = null;
         for (RenamedClass renamedClass : renamedClasses) {
             //Read file from expected folder
-            File outputFile = new File(this.OUTPUT_DIR.getRoot(),
+            File outputFile = new File(this.OUTPUT_DIR,
                                        renamedClass.packageName.replace(".", "/") + "/" + renamedClass.className + ".kt");
-            assertTrue("Output file hasn't been generated or has been generated in the wrong package. Expected path: "
-                               + outputFile.getAbsolutePath(), outputFile.exists());
+            assertTrue(outputFile.exists(),
+                       "Output file hasn't been generated or has been generated in the wrong package. Expected path: "
+                               + outputFile.getAbsolutePath());
             try (BufferedReader reader = new BufferedReader(new FileReader(outputFile))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
@@ -309,7 +302,7 @@ import static org.junit.Assert.*;
             assertEquals(renamedClass.namespace, namespaceAnnotation);
             assertEquals(renamedClass.avroName, nameAnnotation);
         }
-        assertCompilesWithKotlinCompiler(this.OUTPUT_DIR.getRoot());
+        assertCompilesWithKotlinCompiler(this.OUTPUT_DIR);
     }
 
     @Test public void testRenamedClasses() throws IOException {
@@ -337,14 +330,14 @@ import static org.junit.Assert.*;
         Avro4kCompiler compiler = createCompiler();
         compiler.setCreateSetters(false);
         assertFalse(compiler.isCreateSetters());
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {
             String line;
             while ((line = reader.readLine()) != null) {
                 // No setter should be found
                 line = line.trim();
-                assertFalse("No line should include the setter: " + line, line.startsWith("public void setValue("));
+                assertFalse(line.startsWith("public void setValue("), "No line should include the setter: " + line);
             }
         }
     }
@@ -352,7 +345,7 @@ import static org.junit.Assert.*;
     @Test public void testSettingOutputCharacterEncoding() throws Exception {
         Avro4kCompiler compiler = createCompiler();
         // Generated file in default encoding
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         byte[] fileInDefaultEncoding = new byte[(int) this.outputFile.length()];
         FileInputStream is = new FileInputStream(this.outputFile);
         is.read(fileInDefaultEncoding);
@@ -366,17 +359,17 @@ import static org.junit.Assert.*;
         // per character)
         String differentEncoding = Charset.defaultCharset().equals(StandardCharsets.UTF_16) ? "UTF-32" : "UTF-16";
         compiler.setOutputCharacterEncoding(differentEncoding);
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         byte[] fileInDifferentEncoding = new byte[(int) this.outputFile.length()];
         is = new FileInputStream(this.outputFile);
         is.read(fileInDifferentEncoding);
         is.close();
         // Compare as bytes
-        assertThat("Generated file should contain different bytes after setting non-default encoding", fileInDefaultEncoding,
-                   not(equalTo(fileInDifferentEncoding)));
+        assertNotEquals(fileInDifferentEncoding, fileInDefaultEncoding,
+                        "Generated file should contain different bytes after setting non-default encoding");
         // Compare as strings
-        assertThat("Generated files should contain the same characters in the proper encodings",
-                   new String(fileInDefaultEncoding), equalTo(new String(fileInDifferentEncoding, differentEncoding)));
+        assertEquals(new String(fileInDifferentEncoding, differentEncoding), new String(fileInDefaultEncoding),
+                     "Generated files should contain the same characters in the proper encodings");
     }
 
     @Test public void testJavaTypeWithJsr310DateTimeTypes() throws Exception {
@@ -488,23 +481,23 @@ import static org.junit.Assert.*;
         assertEquals("Should return boxed type", compiler.kotlinUnbox(nullableBooleanSchema2), "Boolean?");
     }
 
-    @Test public void testUnionAndFixedFields() throws Exception {
+    @Test public void testUnionAndFixedFields(TestInfo testInfo) throws Exception {
         Schema unionTypesWithMultipleFields = new Schema.Parser().parse(
                 new File("src/test/resources/union_and_fixed_fields.avsc"));
-        assertCompilesWithKotlinCompiler(new File(this.outputFile, name.getMethodName()),
+        assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
                                          new Avro4kCompiler(unionTypesWithMultipleFields).compile());
     }
 
-    @Test public void testLogicalTypesWithMultipleFieldsJsr310DateTime() throws Exception {
+    @Test public void testLogicalTypesWithMultipleFieldsJsr310DateTime(TestInfo testInfo) throws Exception {
         Schema logicalTypesWithMultipleFields = new Schema.Parser().parse(
                 new File("src/test/resources/logical_types_with_multiple_fields.avsc"));
-        assertCompilesWithKotlinCompiler(new File(this.outputFile, name.getMethodName()),
+        assertCompilesWithKotlinCompiler(new File(this.outputFile, testInfo.getDisplayName()),
                                          new Avro4kCompiler(logicalTypesWithMultipleFields).compile());
     }
 
     @Test public void testPojoWithOptionalTurnedOffByDefault() throws IOException {
         Avro4kCompiler compiler = createCompiler();
-        compiler.compileToDestination(this.src, OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {
             String line;
@@ -521,7 +514,7 @@ import static org.junit.Assert.*;
         customTools.add("");
         compiler.setAdditionalVelocityTools(customTools);
         compiler.setTemplateDir("src/test/resources/templates_with_custom_tools/");
-        compiler.compileToDestination(this.src, this.OUTPUT_DIR.getRoot());
+        compiler.compileToDestination(this.src, this.OUTPUT_DIR);
         assertTrue(this.outputFile.exists());
         int itWorksFound = 0;
         try (BufferedReader reader = new BufferedReader(new FileReader(this.outputFile))) {

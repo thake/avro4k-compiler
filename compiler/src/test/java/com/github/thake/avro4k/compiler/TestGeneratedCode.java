@@ -24,9 +24,9 @@ import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
 import org.apache.avro.specific.test.FullRecordV1;
 import org.apache.avro.specific.test.FullRecordV2;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -37,7 +37,7 @@ public class TestGeneratedCode {
     private final static Schema V1S = Avro.Companion.getDefault().schema(FullRecordV1.Companion.serializer());
     private final static Schema V2S = Avro.Companion.getDefault().schema(FullRecordV2.Companion.serializer());
 
-    @Before public void setUp() {
+    @BeforeEach public void setUp() {
         MODEL.setCustomCoders(true);
     }
 
@@ -47,7 +47,7 @@ public class TestGeneratedCode {
         ByteArrayOutputStream out = new ByteArrayOutputStream(1024);
         byte[] output = Avro.Companion.getDefault().dump(serializer, src);
         FullRecordV1 dst = Avro.Companion.getDefault().load(serializer, output);
-        Assert.assertEquals(src, dst);
+        Assertions.assertEquals(src, dst);
     }
 
     @Test public void withSchemaMigration() throws IOException {
@@ -65,6 +65,6 @@ public class TestGeneratedCode {
         FullRecordV1 dst = (FullRecordV1) inputStream.next();
 
         FullRecordV1 expected = new FullRecordV1(true, 87231, 731L, 54.2832F, 38.0, null, "Hello, world!");
-        Assert.assertEquals(expected, dst);
+        Assertions.assertEquals(expected, dst);
     }
 }

@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.github.thake.avro4k</groupId>
         <artifactId>avro4k-parent</artifactId>
-        <version>0.0.2-SNAPSHOT</version>
+        <version>0.2.0-SNAPSHOT</version>
         <relativePath>../</relativePath>
     </parent>
     <artifactId>avro4k-compiler</artifactId>
@@ -85,6 +85,7 @@
                                 <argument>${project.basedir}/src/test/resources/full_record_v1.avsc</argument>
                                 <argument>${project.basedir}/src/test/resources/full_record_v2.avsc</argument>
                                 <argument>${project.basedir}/src/test/resources/record_with_alias.avsc</argument>
+                                <argument>${project.basedir}/src/test/resources/roundtrip</argument>
                                 <argument>${project.basedir}/target/generated-test-sources</argument>
                             </arguments>
                         </configuration>
@@ -180,20 +181,6 @@
             <artifactId>ant</artifactId>
             <!-- can only be used from within ant -->
             <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.slf4j</groupId>
-            <artifactId>slf4j-simple</artifactId>
-            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.sksamuel.avro4k</groupId>

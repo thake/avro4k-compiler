@@ -20,7 +20,7 @@
 
     <groupId>com.github.thake.avro4k</groupId>
     <artifactId>avro4k-parent</artifactId>
-    <version>0.0.2-SNAPSHOT</version>
+    <version>0.2.0-SNAPSHOT</version>
 
 
     <name>Avro source code generator for kotlin</name>
@@ -56,6 +56,7 @@
     </distributionManagement>
     <properties>
         <avro.version>1.9.2</avro.version>
+        <avro4k.version>0.22.0</avro4k.version>
         <ant.version>1.10.5</ant.version>
         <commons-lang.version>3.9</commons-lang.version>
         <velocity.version>2.2</velocity.version>
@@ -63,7 +64,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.25</slf4j.version>
-        <junit.version>4.12</junit.version>
+        <junit.version>5.6.0</junit.version>
         <exec-plugin.version>1.6.0</exec-plugin.version>
         <surefire-plugin.version>3.0.0-M3</surefire-plugin.version>
         <javacc-plugin.version>2.6</javacc-plugin.version>
@@ -178,7 +179,7 @@
             <dependency>
                 <groupId>com.sksamuel.avro4k</groupId>
                 <artifactId>avro4k-core</artifactId>
-                <version>0.21.0</version>
+                <version>${avro4k.version}</version>
                 <scope>test</scope>
             </dependency>
             <dependency>
@@ -206,10 +207,22 @@
                 <scope>test</scope>
             </dependency>
             <dependency>
-                <groupId>junit</groupId>
-                <artifactId>junit</artifactId>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-api</artifactId>
                 <version>${junit.version}</version>
                 <scope>test</scope>
+            </dependency>
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-engine</artifactId>
+                <version>${junit.version}</version>
+                <scope>test</scope>
+            </dependency>
+
+            <dependency>
+                <groupId>org.junit.jupiter</groupId>
+                <artifactId>junit-jupiter-params</artifactId>
+                <version>${junit.version}</version>
             </dependency>
             <dependency>
                 <groupId>org.slf4j</groupId>
@@ -226,8 +239,18 @@
     </dependencyManagement>
     <dependencies>
         <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-params</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>

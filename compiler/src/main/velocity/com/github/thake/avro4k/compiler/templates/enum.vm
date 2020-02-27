@@ -15,16 +15,8 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-#if ($schema.getNamespace())
-package $schema.getNamespace();
-#end
-#if ($schema.getDoc())
-@com.sksamuel.avro4k.AvroDoc("$schema.getDoc()")
-#end
-#foreach ($annotation in $this.javaAnnotations($schema))
-@$annotation
-#end
-enum class ${this.mangle($schema.getName())} {
+#parse($this.getTemplate("header.vm"))
+enum class ${this.mangle($this.name($schema))} {
 #foreach ($symbol in ${schema.getEnumSymbols()})${this.mangle($symbol)}#if ($foreach.hasNext), #end#end
 ;
 }

@@ -1,0 +1,37 @@
+{
+  "type": "record",
+  "name": "SimpleRecord",
+  "namespace": "roundtrip.withenum",
+  "fields": [
+    {
+      "name": "value",
+      "type": {
+        "type": "enum",
+        "name": "Suit",
+        "namespace": "roundtrip.withenum.something",
+        "symbols": [
+          "SPADES",
+          "HEARTS",
+          "DIAMONDS",
+          "CLUBS"
+        ],
+        "aliases": [
+          "call",
+          "me",
+          "by",
+          "my",
+          "name"
+        ],
+        "doc": "Playing cards"
+      }
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        "int"
+      ],
+      "doc": "doc"
+    }
+  ]
+}

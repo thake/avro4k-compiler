@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "SimpleRecord",
+  "namespace": "roundtrip.alias",
+  "aliases": [
+    "aliasForRecord"
+  ],
+  "fields": [
+    {
+      "name": "value",
+      "type": "int",
+      "aliases": [
+        "aliasForField"
+      ]
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        "int"
+      ],
+      "doc": "doc",
+      "aliases": [
+        "firstAlias",
+        "secondAlias"
+      ]
+    }
+  ]
+}

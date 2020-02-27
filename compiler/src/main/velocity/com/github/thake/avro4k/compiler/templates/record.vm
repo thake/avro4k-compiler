@@ -17,45 +17,27 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-#if ($this.namespace($schema))
-package $this.namespace($schema)
-#end
-
-import com.sksamuel.avro4k.*
-import kotlinx.serialization.*
-
-
-#if ($schema.getDoc())
-@AvroDoc("$schema.getDoc()")
-#end
-#foreach ($annotation in $this.javaAnnotations($schema))
-@$annotation
-#end
-@Serializable()
-#if ($this.isNameMapped($schema))
-@AvroNamespace("#if ($schema.namespace)$schema.namespace#end")
-@AvroName("$schema.name")
-#end
-#foreach($alias in $schema.aliases)
-@AvroAlias("$alias")
-#end
+#parse($this.getTemplate("header.vm"))
 data class ${this.mangle($this.name($schema))} (
 #foreach ($field in $schema.getFields())
-    #if ($field.doc())
-    @AvroDoc("$field.doc()")
-    #end
-    #foreach ($annotation in $this.javaAnnotations($field))
-    @$annotation
-    #end
-    #if($this.serializerClass($field.schema()).isPresent())
-    @Serializable(with=${this.serializerClass($field.schema()).get()}::class)
-    #end
-    #if($field.hasDefaultValue())
-    @AvroDefault("$this.defaultValue($field)")
-    #end
-    #foreach($alias in $field.aliases())
-    @AvroAlias("$alias")
-    #end
-    #if (${this.privateFields()})private#elseif(${this.internalFields()})internal#elseif(${this.protectedFields()})protected#end #if(${this.isCreateSetters()})var#else val#end ${this.mangle($field.name(), $schema.isError())} : ${this.kotlinUnbox($field.schema())}#if( $foreach.hasNext ),#end
+  #if ($field.doc())
+  /**
+    $field.doc()
+  */
+  @AvroDoc("$field.doc()")
+  #end
+  #foreach ($annotation in $this.javaAnnotations($field))
+  @$annotation
+  #end
+  #if($this.serializerClass($field.schema()).isPresent())
+  @Serializable(with=${this.serializerClass($field.schema()).get()}::class)
+  #end
+  #if($field.hasDefaultValue())
+  @AvroDefault(#if(${this.isDefaultValueNull($field)})Avro.NULL#else"$this.defaultValue($field)"#end)
+  #end
+  #if(!$field.aliases().empty)
+  @AvroAliases([#foreach($alias in $field.aliases())"$alias"#if( $foreach.hasNext ),#end#end])
+  #end
+  #if (${this.privateFields()})private#elseif(${this.internalFields()})internal#elseif(${this.protectedFields()})protected#end #if(${this.isCreateSetters()})var#else val#end ${this.mangle($field.name(), $schema.isError())} : ${this.kotlinUnbox($field.schema())}#if( $foreach.hasNext ),#end
 #end
 )

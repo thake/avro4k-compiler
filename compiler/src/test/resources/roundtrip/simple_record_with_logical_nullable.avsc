@@ -1,0 +1,22 @@
+{
+  "type": "record",
+  "name": "SimpleRecordWithLogicalNullable",
+  "namespace": "roundtrip",
+  "fields": [
+    {
+      "name": "value",
+      "type": "int"
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        {
+          "type": "long",
+          "logicalType": "timestamp-millis"
+        }
+      ],
+      "doc": "doc"
+    }
+  ]
+}

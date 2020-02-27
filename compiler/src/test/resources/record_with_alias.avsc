@@ -4,14 +4,16 @@
   "doc": "Test schema changes: this is the 'new' schema actually used to write data",
   "namespace": "org.apache.avro.specific.test",
   "aliases": [
-    "RecordAlias1"
+    "RecordAlias1",
+    "SecondAlias"
   ],
   "fields": [
     {
       "name": "b",
       "type": "boolean",
       "aliases": [
-        "bAlias"
+        "bAlias",
+        "anotherAlias"
       ]
     },
     {

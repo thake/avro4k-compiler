@@ -1,3 +1,5 @@
+#* @vtlvariable name="this" type="com.github.thake.avro4k.compiler.Avro4kCompiler" *#
+#* @vtlvariable name="schema" type="org.apache.avro.Schema" *#
 ##
 ## Licensed to the Apache Software Foundation (ASF) under one
 ## or more contributor license agreements.  See the NOTICE file
@@ -15,8 +17,30 @@
 ## See the License for the specific language governing permissions and
 ## limitations under the License.
 ##
-#parse($this.getTemplate("header.vm"))
-@AvroFixed($schema.getFixedSize())
-data class ${this.mangle($this.name($schema))}(
-val bytes : ByteArray
-)
+#if ($this.namespace($schema))
+package $this.namespace($schema)
+#end
+
+import com.sksamuel.avro4k.*
+import kotlinx.serialization.*
+
+
+#if ($schema.getDoc())
+/**
+    $schema.getDoc()
+*/
+@AvroDoc("$schema.getDoc()")
+#end
+#foreach ($annotation in $this.javaAnnotations($schema))
+@$annotation
+#end
+#if($this.annotateSerializable($schema))
+@Serializable
+#end
+#if ($this.isNameMapped($schema))
+@AvroNamespace("#if ($schema.namespace)$schema.namespace#end")
+@AvroName("$schema.name")
+#end
+#if(!$schema.aliases.empty)
+@AvroAliases([#foreach($alias in $schema.aliases)"$alias"#if( $foreach.hasNext ),#end#end])
+#end
