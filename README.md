@@ -1,5 +1,5 @@
 # Avro compiler for avro4k
-[<img src="https://img.shields.io/maven-central/v/com.github.thake.avro4k/avro4k-maven-plugin.svg?label=latest%20release"/>](http://search.maven.org/#search%7Cga%7C1%7Cavro4k)
+[<img src="https://img.shields.io/maven-central/v/com.github.thake.avro4k/avro4k-maven-plugin.svg?label=latest%20release"/>](https://search.maven.org/search?q=g:com.github.thake.avro4k)
 
 This is a generator for avro4k compatible kotlin source files. The generator is based on 
 the avro java compiler.
@@ -18,7 +18,7 @@ Additional features:
         <plugin>
             <groupId>com.github.thake.avro4k</groupId>
             <artifactId>avro4k-maven-plugin</artifactId>
-            <version>0.0.2</version>
+            <version>0.3.0</version>
             <configuration>
                 <sourceDirectory>${avro.schema.directory}</sourceDirectory>
                 <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>
