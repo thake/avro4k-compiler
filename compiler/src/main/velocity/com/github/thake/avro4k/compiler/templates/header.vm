@@ -29,7 +29,7 @@ import kotlinx.serialization.*
 /**
     $schema.getDoc()
 */
-@AvroDoc("$schema.getDoc()")
+@AvroDoc("$this.escapeJavaString($schema.getDoc())")
 #end
 #foreach ($annotation in $this.javaAnnotations($schema))
 @$annotation

@@ -21,6 +21,7 @@ import org.apache.avro.JsonProperties;
 import org.apache.avro.Protocol;
 import org.apache.avro.Schema;
 import org.apache.avro.Schema.Field;
+import org.apache.commons.text.StringEscapeUtils;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
@@ -375,6 +376,10 @@ public class Avro4kCompiler {
         }
     }
 
+    public String escapeJavaString(String str) {
+        return StringEscapeUtils.escapeJava(str);
+    }
+
     public String getTemplate(String file) {
         return templateDir + file;
     }
@@ -384,7 +389,6 @@ public class Avro4kCompiler {
         VelocityContext context = new VelocityContext();
         context.put("this", this);
         context.put("schema", schema);
-
         for (Object velocityTool : additionalVelocityTools) {
             String toolName = velocityTool.getClass().getSimpleName().toLowerCase();
             context.put(toolName, velocityTool);

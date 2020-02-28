@@ -1,0 +1,19 @@
+{
+  "type": "record",
+  "name": "SimpleRecordEscaped",
+  "namespace": "roundtrip.escape",
+  "fields": [
+    {
+      "name": "value",
+      "type": "int"
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        "int"
+      ],
+      "doc": "doc with\" some \" escape\\ char\\n \\t acters"
+    }
+  ]
+}

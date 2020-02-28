@@ -24,7 +24,7 @@ data class ${this.mangle($this.name($schema))} (
   /**
     $field.doc()
   */
-  @AvroDoc("$field.doc()")
+  @AvroDoc("$this.escapeJavaString($field.doc())")
   #end
   #foreach ($annotation in $this.javaAnnotations($field))
   @$annotation
