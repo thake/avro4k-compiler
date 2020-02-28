@@ -14,4 +14,8 @@ public class DecimalLogicalTypeConversion extends SerializableLogicalTypeConvers
         return "@ScalePrecision(" + logicalType.getScale() + "," + logicalType.getPrecision() + ") "
                 + super.getSerializationAnnotation(schema);
     }
+
+    @Override public String getKotlinDefaultString(Schema schema, Object defaultValue) {
+        return null;
+    }
 }

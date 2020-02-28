@@ -1,0 +1,83 @@
+{
+  "type": "record",
+  "name": "SimpleRecord",
+  "namespace": "roundtrip.defaultvalues",
+  "fields": [
+    {
+      "name": "value",
+      "type": "int",
+      "default": 1
+    },
+    {
+      "name": "longValue",
+      "type": "long",
+      "default": 1
+    },
+    {
+      "name": "booleanValue",
+      "type": "boolean",
+      "default": false
+    },
+    {
+      "name": "floatValue",
+      "type": "float",
+      "default": 1.0
+    },
+    {
+      "name": "doubleValue",
+      "type": "double",
+      "default": 1.0
+    },
+    {
+      "name": "stringValue",
+      "type": "string",
+      "default": "Str"
+    },
+    {
+      "name": "decimalValue",
+      "type": [
+        "null",
+        {
+          "type": "bytes",
+          "logicalType": "decimal",
+          "precision": 4,
+          "scale": 2
+        }
+      ],
+      "default": null
+    },
+    {
+      "name": "dateValue",
+      "type": {
+        "type": "int",
+        "logicalType": "date"
+      },
+      "default": 365
+    },
+    {
+      "name": "timeMillisValue",
+      "type": {
+        "type": "int",
+        "logicalType": "time-millis"
+      },
+      "default": 1000
+    },
+    {
+      "name": "timestampMillisValue",
+      "type": {
+        "type": "long",
+        "logicalType": "timestamp-millis"
+      },
+      "default": 0
+    },
+    {
+      "name": "nullableValue",
+      "type": [
+        "null",
+        "int"
+      ],
+      "default": null,
+      "doc": "doc"
+    }
+  ]
+}

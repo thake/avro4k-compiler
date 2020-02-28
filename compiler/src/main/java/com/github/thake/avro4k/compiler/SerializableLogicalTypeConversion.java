@@ -2,7 +2,7 @@ package com.github.thake.avro4k.compiler;
 
 import org.apache.avro.Schema;
 
-public class SerializableLogicalTypeConversion implements LogicalTypeConversion {
+abstract public class SerializableLogicalTypeConversion implements LogicalTypeConversion {
     private String logicalTypeName;
     private String kotlinType;
     private String kotlinSerializer;

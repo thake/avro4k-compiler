@@ -8,4 +8,6 @@ public interface LogicalTypeConversion {
     String getKotlinType();
 
     String getSerializationAnnotation(Schema schema);
+
+    String getKotlinDefaultString(Schema schema, Object defaultValue);
 }

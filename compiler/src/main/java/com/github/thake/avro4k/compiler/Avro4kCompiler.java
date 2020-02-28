@@ -30,10 +30,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.math.BigDecimal;
 import java.nio.file.Files;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalTime;
 import java.util.*;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
@@ -273,12 +271,9 @@ public class Avro4kCompiler {
     }
 
     private void initializeSpecificData() {
-        addLogicalTypeConversion(new SerializableLogicalTypeConversion("date", LocalDate.class,
-                                                                       "com.sksamuel.avro4k.serializer.LocalDateSerializer"));
-        addLogicalTypeConversion(new SerializableLogicalTypeConversion("time-millis", LocalTime.class,
-                                                                       "com.sksamuel.avro4k.serializer.LocalTimeSerializer"));
-        addLogicalTypeConversion(new SerializableLogicalTypeConversion("timestamp-millis", Instant.class,
-                                                                       "com.sksamuel.avro4k.serializer.InstantSerializer"));
+        addLogicalTypeConversion(new DateLogicalTypeConversion());
+        addLogicalTypeConversion(new TimestampMillisTypeConversion());
+        addLogicalTypeConversion(new TimestampMillisTypeConversion());
         addLogicalTypeConversion(new DecimalLogicalTypeConversion());
     }
 
@@ -562,6 +557,32 @@ public class Avro4kCompiler {
             return null;
         } else {
             return defaultvalue.toString();
+        }
+    }
+
+    public String defaultValueAsKotlinValue(Field field) {
+        if (!field.hasDefaultValue()) {
+            return "";
+        }
+        Object defaultValue = field.defaultVal();
+        if (defaultValue == JsonProperties.NULL_VALUE) {
+            return "null";
+        }
+        Optional<LogicalTypeConversion> logicalType = getLogicalTypeConversion(field.schema());
+        if (logicalType.isPresent()) {
+            return logicalType.get().getKotlinDefaultString(field.schema(), defaultValue);
+        } else if (defaultValue instanceof String) {
+            return "\"" + escapeJavaString((String) defaultValue) + "\"";
+        } else if (defaultValue instanceof Long) {
+            return defaultValue + "L";
+        } else if (defaultValue instanceof BigDecimal) {
+            return "java.math:BigDecimal(\"" + defaultValue.toString() + "\")";
+        } else if (defaultValue instanceof Float) {
+            return defaultValue + "f";
+        } else if (defaultValue instanceof Number) {
+            return defaultValue.toString();
+        } else {
+            return defaultValue.toString();
         }
     }
 

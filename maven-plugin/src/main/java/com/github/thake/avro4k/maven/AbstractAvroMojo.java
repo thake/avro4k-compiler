@@ -19,7 +19,7 @@
 package com.github.thake.avro4k.maven;
 
 import com.github.thake.avro4k.compiler.Avro4kCompiler;
-import com.github.thake.avro4k.compiler.SerializableLogicalTypeConversion;
+import com.github.thake.avro4k.compiler.LogicalTypeConversion;
 import org.apache.maven.artifact.DependencyResolutionRequiredException;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -77,7 +77,11 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    * The current Maven project.
    */
   @Parameter(defaultValue = "${project}", required = true, readonly = true) protected MavenProject project;
-  @Parameter protected Conversion[] logicalTypeConversions = new Conversion[0];
+  /**
+   * Classes implementing {@link com.github.thake.avro4k.compiler.LogicalTypeConversion} for a custom treatment
+   * of a logical type.
+   */
+  @Parameter protected String[] logicalTypeConversions = new String[0];
   /**
    * The source directory of avro files. This directory is added to the classpath
    * at schema compiling time. All files can therefore be referenced as classpath
@@ -135,22 +139,33 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
     }
   }
 
-  protected void configure(Avro4kCompiler compiler) {
+  protected void configure(Avro4kCompiler compiler) throws MojoExecutionException {
     compiler.setTemplateDir(templateDirectory);
     compiler.setFieldVisibility(fieldVisibility);
     compiler.setCreateSetters(createSetters);
     compiler.setAdditionalVelocityTools(instantiateAdditionalVelocityTools());
-    for (Conversion conv : logicalTypeConversions) {
-      compiler.addLogicalTypeConversion(
-              new SerializableLogicalTypeConversion(conv.getLogicalTypeName(), conv.getKotlinType(),
-                                                    conv.getKotlinSerializer()));
-    }
+    configureLogicalTypeConversions(compiler);
     Map<String, String> classRenameRules = new HashMap<>();
     for (RenamedClass clazz : renamedClasses) {
       classRenameRules.put(clazz.getRegex(), clazz.getReplacement());
     }
     compiler.setRenamedClasses(classRenameRules);
     compiler.setOutputCharacterEncoding(project.getProperties().getProperty("project.build.sourceEncoding"));
+  }
+
+  private void configureLogicalTypeConversions(Avro4kCompiler compiler) throws MojoExecutionException {
+    try {
+      final URLClassLoader classLoader = createClassLoader();
+      for (String customConversion : logicalTypeConversions) {
+        try {
+          compiler.addLogicalTypeConversion((LogicalTypeConversion) classLoader.loadClass(customConversion).newInstance());
+        } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {
+          throw new MojoExecutionException("Could not load custom logicalTypeConversion with class " + customConversion, e);
+        }
+      }
+    } catch (DependencyResolutionRequiredException | MalformedURLException e) {
+      throw new MojoExecutionException("Could not create classloader for logicalTypeConversion resolution.", e);
+    }
   }
 
   private String[] getIncludedFiles(String absPath, String[] excludes, String[] includes) {
@@ -207,7 +222,8 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
     return velocityTools;
   }
 
-  protected abstract void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException;
+  protected abstract void doCompile(String filename, File sourceDirectory, File outputDirectory)
+          throws IOException, MojoExecutionException;
 
   protected URLClassLoader createClassLoader() throws DependencyResolutionRequiredException, MalformedURLException {
     List<URL> urls = appendElements(project.getRuntimeClasspathElements());

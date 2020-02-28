@@ -20,6 +20,7 @@ package com.github.thake.avro4k.maven;
 
 import com.github.thake.avro4k.compiler.Avro4kCompiler;
 import org.apache.avro.Schema;
+import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugins.annotations.LifecyclePhase;
 import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
@@ -53,7 +54,8 @@ import java.io.IOException;
    */
   @Parameter private String[] testIncludes = new String[] { "**/*.avsc" };
 
-  @Override protected void doCompile(String filename, File sourceDirectory, File outputDirectory) throws IOException {
+  @Override protected void doCompile(String filename, File sourceDirectory, File outputDirectory)
+          throws IOException, MojoExecutionException {
     File src = new File(sourceDirectory, filename);
     Schema schema;
 
