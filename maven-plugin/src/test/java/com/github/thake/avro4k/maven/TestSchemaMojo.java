@@ -28,39 +28,39 @@ import java.io.File;
  */
 public class TestSchemaMojo extends AbstractAvroMojoTest {
 
-  protected File jsr310TestPom = new File(getBasedir(), "src/test/resources/unit/schema/pom-jsr310.xml");
-  protected File injectingVelocityToolsTestPom = new File(getBasedir(),
-                                                          "src/test/resources/unit/schema/pom-injecting-velocity-tools.xml");
+    protected File jsr310TestPom = new File(getBasedir(), "src/test/resources/unit/schema/pom-jsr310.xml");
+    protected File injectingVelocityToolsTestPom = new File(getBasedir(),
+            "src/test/resources/unit/schema/pom-injecting-velocity-tools.xml");
 
-  public void testSchemaMojoJsr310() throws Exception {
-    SchemaMojo mojo = (SchemaMojo) lookupMojo("schema", jsr310TestPom);
+    public void testSchemaMojoJsr310() throws Exception {
+        SchemaMojo mojo = (SchemaMojo) lookupMojo("schema", jsr310TestPom);
 
-    assertNotNull(mojo);
-    mojo.execute();
+        assertNotNull(mojo);
+        mojo.execute();
 
-    File outputDir = new File(getBasedir(), "target/test-harness/schema-jsr310/test");
-    String[] generatedFiles = new String[] { "PrivacyDirectImport.kt", "PrivacyImport.kt", "SchemaPrivacy.kt",
-            "SchemaUser.kt" };
+        File outputDir = new File(getBasedir(), "target/test-harness/schema-jsr310/test");
+        String[] generatedFiles = new String[]{"PrivacyDirectImport.kt", "PrivacyImport.kt", "SchemaPrivacy.kt",
+                "SchemaUser.kt"};
 
-    assertFilesExist(outputDir, generatedFiles);
+        assertFilesExist(outputDir, generatedFiles);
 
-    String schemaUserContent = FileUtils.fileRead(new File(outputDir, "SchemaUser.kt"));
-    assertTrue(schemaUserContent.contains("java.time.Instant"));
-  }
+        String schemaUserContent = FileUtils.fileRead(new File(outputDir, "SchemaUser.kt"));
+        assertTrue(schemaUserContent.contains("java.time.Instant"));
+    }
 
-  public void testSetCompilerVelocityAdditionalTools() throws Exception {
-    SchemaMojo mojo = (SchemaMojo) lookupMojo("schema", injectingVelocityToolsTestPom);
+    public void testSetCompilerVelocityAdditionalTools() throws Exception {
+        SchemaMojo mojo = (SchemaMojo) lookupMojo("schema", injectingVelocityToolsTestPom);
 
-    assertNotNull(mojo);
-    mojo.execute();
+        assertNotNull(mojo);
+        mojo.execute();
 
-    File outputDir = new File(getBasedir(), "target/test-harness/schema/test");
-    String[] generatedFiles = new String[] { "PrivacyDirectImport.kt", "PrivacyImport.kt", "SchemaPrivacy.kt",
-            "SchemaUser.kt" };
+        File outputDir = new File(getBasedir(), "target/test-harness/schema/test");
+        String[] generatedFiles = new String[]{"PrivacyDirectImport.kt", "PrivacyImport.kt", "SchemaPrivacy.kt",
+                "SchemaUser.kt"};
 
-    assertFilesExist(outputDir, generatedFiles);
+        assertFilesExist(outputDir, generatedFiles);
 
-    String schemaUserContent = FileUtils.fileRead(new File(outputDir, "SchemaUser.kt"));
-    assertTrue(schemaUserContent.contains("It works!"));
-  }
+        String schemaUserContent = FileUtils.fileRead(new File(outputDir, "SchemaUser.kt"));
+        assertTrue(schemaUserContent.contains("It works!"));
+    }
 }

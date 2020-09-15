@@ -87,18 +87,24 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
    * at schema compiling time. All files can therefore be referenced as classpath
    * resources following the directory structure under the source directory.
    */
-  @Parameter(defaultValue = "${basedir}/src/main/avro") private File sourceDirectory;
-  @Parameter(defaultValue = "${project.build.directory}/generated-sources/avro") private File outputDirectory;
-  @Parameter(defaultValue = "${basedir}/src/test/avro") private File testSourceDirectory;
-  @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/avro") private File testOutputDirectory;
+  @Parameter(defaultValue = "${basedir}/src/main/avro")
+  private File sourceDirectory;
+  @Parameter(defaultValue = "${project.build.directory}/generated-sources/avro")
+  private File outputDirectory;
+  @Parameter(defaultValue = "${basedir}/src/test/avro")
+  private File testSourceDirectory;
   /**
    * The field visibility indicator for the fields of the generated class, as
    * string values of {@link com.github.thake.avro4k.compiler.Avro4kCompiler.FieldVisibility}. The text is case
    * insensitive.
    */
-  @Parameter(defaultValue = "PUBLIC") private Avro4kCompiler.FieldVisibility fieldVisibility = Avro4kCompiler.FieldVisibility.PUBLIC;
+  @Parameter(defaultValue = "PUBLIC")
+  private final Avro4kCompiler.FieldVisibility fieldVisibility = Avro4kCompiler.FieldVisibility.PUBLIC;
+  @Parameter(defaultValue = "${project.build.directory}/generated-test-sources/avro")
+  private File testOutputDirectory;
 
-  @Override public void execute() throws MojoExecutionException {
+  @Override
+  public void execute() throws MojoExecutionException {
     boolean hasSourceDir = null != sourceDirectory && sourceDirectory.isDirectory();
     boolean hasImports = null != imports;
     boolean hasTestDir = null != testSourceDirectory && testSourceDirectory.isDirectory();
@@ -130,6 +136,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
 
     if (hasImports || hasSourceDir) {
       project.addCompileSourceRoot(outputDirectory.getAbsolutePath());
+      getLog().info("Added " + outputDirectory.getAbsolutePath() + " as a source directory");
     }
 
     if (hasTestDir) {
@@ -213,7 +220,7 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
     List<Object> velocityTools = new ArrayList<>(velocityToolsClassesNames.length);
     for (String velocityToolClassName : velocityToolsClassesNames) {
       try {
-        Class klass = Class.forName(velocityToolClassName);
+        Class<?> klass = Class.forName(velocityToolClassName);
         velocityTools.add(klass.newInstance());
       } catch (Exception e) {
         throw new RuntimeException(e);
@@ -231,12 +238,11 @@ public abstract class AbstractAvroMojo extends AbstractMojo {
     return new URLClassLoader(urls.toArray(new URL[0]), Thread.currentThread().getContextClassLoader());
   }
 
-  private List<URL> appendElements(List runtimeClasspathElements) throws MalformedURLException {
+  private List<URL> appendElements(List<String> runtimeClasspathElements) throws MalformedURLException {
     List<URL> runtimeUrls = new ArrayList<>();
     if (runtimeClasspathElements != null) {
-      for (Object runtimeClasspathElement : runtimeClasspathElements) {
-        String element = (String) runtimeClasspathElement;
-        runtimeUrls.add(new File(element).toURI().toURL());
+      for (String runtimeClasspathElement : runtimeClasspathElements) {
+        runtimeUrls.add(new File(runtimeClasspathElement).toURI().toURL());
       }
     }
     return runtimeUrls;
