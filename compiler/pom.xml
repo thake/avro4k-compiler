@@ -20,7 +20,7 @@
     <parent>
         <groupId>com.github.thake.avro4k</groupId>
         <artifactId>avro4k-parent</artifactId>
-        <version>0.5.0</version>
+        <version>0.5.1-SNAPSHOT</version>
     </parent>
     <artifactId>avro4k-compiler</artifactId>
 
