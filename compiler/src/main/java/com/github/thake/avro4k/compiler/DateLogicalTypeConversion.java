@@ -6,7 +6,7 @@ import java.time.LocalDate;
 
 public class DateLogicalTypeConversion extends SerializableLogicalTypeConversion {
     public DateLogicalTypeConversion() {
-        super("date", LocalDate.class, "com.sksamuel.avro4k.serializer.LocalDateSerializer");
+        super("date", LocalDate.class, "com.github.avrokotlin.avro4k.serializer.LocalDateSerializer");
     }
 
     @Override public String getKotlinDefaultString(Schema schema, Object defaultValue) {

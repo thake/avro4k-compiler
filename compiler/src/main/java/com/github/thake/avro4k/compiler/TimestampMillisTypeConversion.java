@@ -6,7 +6,7 @@ import java.time.Instant;
 
 public class TimestampMillisTypeConversion extends SerializableLogicalTypeConversion {
     public TimestampMillisTypeConversion() {
-        super("timestamp-millis", Instant.class, "com.sksamuel.avro4k.serializer.InstantSerializer");
+        super("timestamp-millis", Instant.class, "com.github.avrokotlin.avro4k.serializer.InstantSerializer");
     }
 
     @Override public String getKotlinDefaultString(Schema schema, Object defaultValue) {

@@ -16,9 +16,9 @@
 
 package com.github.thake.avro4k.compiler;
 
-import com.sksamuel.avro4k.Avro;
-import com.sksamuel.avro4k.io.AvroFormat;
-import com.sksamuel.avro4k.io.AvroInputStream;
+import com.github.avrokotlin.avro4k.Avro;
+import com.github.avrokotlin.avro4k.io.AvroDecodeFormat;
+import com.github.avrokotlin.avro4k.io.AvroInputStream;
 import kotlinx.serialization.KSerializer;
 import org.apache.avro.Schema;
 import org.apache.avro.specific.SpecificData;
@@ -57,9 +57,10 @@ public class TestGeneratedCode {
 
         KSerializer<FullRecordV1> serializerV1 = FullRecordV1.Companion.serializer();
         AvroInputStream<Object> inputStream = Avro.Companion.getDefault().openInputStream(f -> {
-            f.setFormat(AvroFormat.DataFormat.INSTANCE);
-            f.setReaderSchema(Avro.Companion.getDefault().schema(serializerV1));
-            f.setWriterSchema(Avro.Companion.getDefault().schema(serializerV2));
+            f.setDecodeFormat(new AvroDecodeFormat.Data(
+                    Avro.Companion.getDefault().schema(serializerV2),
+                    Avro.Companion.getDefault().schema(serializerV1)
+            ));
             return null;
         }).from(output);
         FullRecordV1 dst = (FullRecordV1) inputStream.next();

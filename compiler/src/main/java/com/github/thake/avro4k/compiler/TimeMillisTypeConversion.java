@@ -6,7 +6,7 @@ import java.time.LocalTime;
 
 public class TimeMillisTypeConversion extends SerializableLogicalTypeConversion {
     public TimeMillisTypeConversion() {
-        super("time-millis", LocalTime.class, "com.sksamuel.avro4k.serializer.LocalTimeSerializer");
+        super("time-millis", LocalTime.class, "com.github.avrokotlin.avro4k.serializer.LocalTimeSerializer");
     }
 
     @Override public String getKotlinDefaultString(Schema schema, Object defaultValue) {

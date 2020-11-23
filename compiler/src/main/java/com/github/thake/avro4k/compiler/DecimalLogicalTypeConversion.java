@@ -6,7 +6,7 @@ import org.apache.avro.Schema;
 public class DecimalLogicalTypeConversion extends SerializableLogicalTypeConversion {
 
     public DecimalLogicalTypeConversion() {
-        super("decimal", "java.math.BigDecimal", "com.sksamuel.avro4k.serializer.BigDecimalSerializer");
+        super("decimal", "java.math.BigDecimal", "com.github.avrokotlin.avro4k.serializer.BigDecimalSerializer");
     }
 
     @Override public String getSerializationAnnotation(Schema schema) {

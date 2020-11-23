@@ -21,7 +21,7 @@
 package $this.namespace($schema)
 #end
 
-import com.sksamuel.avro4k.*
+import com.github.avrokotlin.avro4k.*
 import kotlinx.serialization.*
 
 

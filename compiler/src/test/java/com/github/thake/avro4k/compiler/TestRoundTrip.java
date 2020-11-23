@@ -1,6 +1,6 @@
 package com.github.thake.avro4k.compiler;
 
-import com.sksamuel.avro4k.Avro;
+import com.github.avrokotlin.avro4k.Avro;
 import kotlinx.serialization.SerializationStrategy;
 import org.apache.avro.Schema;
 import org.junit.jupiter.api.io.TempDir;
@@ -19,7 +19,6 @@ import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestRoundTrip {
 
@@ -30,11 +29,6 @@ public class TestRoundTrip {
     @ParameterizedTest @MethodSource("roundtripFiles") public void testScriptExec(Path file, @TempDir Path outputDir)
             throws ScriptException, IOException, NoSuchFieldException, ClassNotFoundException, IllegalAccessException,
             NoSuchMethodException, InvocationTargetException {
-        if (file.endsWith("record_with_enum.avsc")) {
-            //Disabling test for record_with_enum until https://github.com/sksamuel/avro4k/issues/29 is fixed.
-            assertTrue(true);
-            return;
-        }
         Schema schema = new Schema.Parser().parse(file.toFile());
         Class<?> cl = Class.forName(schema.getFullName());
         Field field = cl.getField("Companion");

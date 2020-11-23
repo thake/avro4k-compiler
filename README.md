@@ -11,6 +11,10 @@ Unsupported features:
 Additional features:
 - Kotlin data classes may have a different name than avro records.
 
+Compatibility:
+- < 0.5.0 Avro4k 0.41.0
+- 0.5.0 Avro4k 1.0.0 (package names have changed)
+
 ## Maven plugin usage:
 ```xml
 <build>
@@ -18,7 +22,7 @@ Additional features:
         <plugin>
             <groupId>com.github.thake.avro4k</groupId>
             <artifactId>avro4k-maven-plugin</artifactId>
-            <version>0.3.0</version>
+            <version>0.5.0</version>
             <configuration>
                 <sourceDirectory>${avro.schema.directory}</sourceDirectory>
                 <outputDirectory>${project.build.directory}/generated-sources</outputDirectory>

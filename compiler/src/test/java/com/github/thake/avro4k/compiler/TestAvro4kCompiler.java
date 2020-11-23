@@ -17,7 +17,7 @@
  */
 package com.github.thake.avro4k.compiler;
 
-import com.sksamuel.avro4k.serializer.InstantSerializer;
+import com.github.avrokotlin.avro4k.serializer.InstantSerializer;
 import kotlin.script.experimental.jvm.util.JvmClasspathUtilKt;
 import kotlin.script.experimental.jvm.util.KotlinJars;
 import org.apache.avro.LogicalTypes;
@@ -44,14 +44,30 @@ import org.junit.jupiter.api.io.TempDir;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.PrintStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestAvro4kCompiler {
     private static final int JVM_METHOD_ARG_LIMIT = 255;
@@ -64,7 +80,7 @@ public class TestAvro4kCompiler {
     @TempDir public File OUTPUT_DIR;
 
     private File outputFile;
-    private File src = new File("src/test/resources/simple_record.avsc");
+    private final File src = new File("src/test/resources/simple_record.avsc");
 
     static void assertCompilesWithKotlinCompiler(File dstDir, Collection<Avro4kCompiler.OutputFile> outputs)
             throws IOException {

@@ -56,7 +56,7 @@
     </distributionManagement>
     <properties>
         <avro.version>1.10.0</avro.version>
-        <avro4k.version>0.41.0</avro4k.version>
+        <avro4k.version>1.0.0</avro4k.version>
         <ant.version>1.10.8</ant.version>
         <commons-lang.version>3.11</commons-lang.version>
         <commons-text.version>1.9</commons-text.version>
@@ -181,7 +181,7 @@
                 <version>${avro.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.sksamuel.avro4k</groupId>
+                <groupId>com.github.avro-kotlin.avro4k</groupId>
                 <artifactId>avro4k-core</artifactId>
                 <version>${avro4k.version}</version>
                 <scope>test</scope>
