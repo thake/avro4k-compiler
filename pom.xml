@@ -55,7 +55,7 @@
         </snapshotRepository>
     </distributionManagement>
     <properties>
-        <avro.version>1.10.0</avro.version>
+        <avro.version>1.10.1</avro.version>
         <avro4k.version>1.0.0</avro4k.version>
         <ant.version>1.10.9</ant.version>
         <commons-lang.version>3.11</commons-lang.version>
