@@ -1,0 +1,30 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+    time: "04:00"
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.github.avro-kotlin.avro4k:avro4k-core
+    versions:
+    - 1.1.0
+  - dependency-name: org.jetbrains.kotlin:kotlin-maven-serialization
+    versions:
+    - 1.4.21-2
+  - dependency-name: org.jetbrains.kotlin:kotlin-maven-plugin
+    versions:
+    - 1.4.21-2
+  - dependency-name: org.jetbrains.kotlin:kotlin-script-util
+    versions:
+    - 1.4.21-2
+  - dependency-name: org.jetbrains.kotlin:kotlin-compiler-embeddable
+    versions:
+    - 1.4.21-2
+  - dependency-name: org.jetbrains.kotlin:kotlin-reflect
+    versions:
+    - 1.4.21-2
+  - dependency-name: org.jetbrains.kotlin:kotlin-stdlib
+    versions:
+    - 1.4.21-2
