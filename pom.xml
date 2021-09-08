@@ -56,7 +56,7 @@
     </distributionManagement>
     <properties>
         <avro.version>1.10.2</avro.version>
-        <avro4k.version>1.2.0</avro4k.version>
+        <avro4k.version>1.4.0</avro4k.version>
         <ant.version>1.10.9</ant.version>
         <commons-lang.version>3.12.0</commons-lang.version>
         <commons-text.version>1.9</commons-text.version>
