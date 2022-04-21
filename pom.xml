@@ -55,23 +55,23 @@
         </snapshotRepository>
     </distributionManagement>
     <properties>
-        <avro.version>1.10.2</avro.version>
+        <avro.version>1.11.0</avro.version>
         <avro4k.version>1.2.0</avro4k.version>
-        <ant.version>1.10.9</ant.version>
+        <ant.version>1.10.12</ant.version>
         <commons-lang.version>3.12.0</commons-lang.version>
         <commons-text.version>1.9</commons-text.version>
         <velocity.version>2.3</velocity.version>
-        <jackson.databind.version>2.13.0</jackson.databind.version>
+        <jackson.databind.version>2.13.2.2</jackson.databind.version>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>1.7.36</slf4j.version>
-        <junit.version>5.8.1</junit.version>
+        <junit.version>5.8.2</junit.version>
         <exec-plugin.version>3.0.0</exec-plugin.version>
         <surefire-plugin.version>3.0.0-M5</surefire-plugin.version>
         <javacc-plugin.version>2.6</javacc-plugin.version>
         <jar-plugin.version>3.2.0</jar-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.5.31</kotlin.version>
+        <kotlin.version>1.6.10</kotlin.version>
         <maven.version>3.8.3</maven.version>
         <file-management.version>3.0.0</file-management.version>
     </properties>
