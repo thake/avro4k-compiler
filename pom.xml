@@ -72,7 +72,7 @@
         <jar-plugin.version>3.2.2</jar-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.6.10</kotlin.version>
-        <maven.version>3.8.3</maven.version>
+        <maven.version>3.8.5</maven.version>
         <file-management.version>3.0.0</file-management.version>
     </properties>
     <modules>
