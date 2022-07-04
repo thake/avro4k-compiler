@@ -73,7 +73,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <kotlin.version>1.6.10</kotlin.version>
         <maven.version>3.8.5</maven.version>
-        <file-management.version>3.0.0</file-management.version>
+        <file-management.version>3.1.0</file-management.version>
     </properties>
     <modules>
         <module>compiler</module>
