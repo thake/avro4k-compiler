@@ -59,7 +59,7 @@
         <avro4k.version>1.6.0</avro4k.version>
         <ant.version>1.10.12</ant.version>
         <commons-lang.version>3.12.0</commons-lang.version>
-        <commons-text.version>1.9</commons-text.version>
+        <commons-text.version>1.10.0</commons-text.version>
         <velocity.version>2.3</velocity.version>
         <jackson.databind.version>2.13.4</jackson.databind.version>
         <maven.compiler.source>1.8</maven.compiler.source>
