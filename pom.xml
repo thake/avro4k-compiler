@@ -65,7 +65,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <slf4j.version>2.0.1</slf4j.version>
-        <junit.version>5.9.0</junit.version>
+        <junit.version>5.9.2</junit.version>
         <exec-plugin.version>3.1.0</exec-plugin.version>
         <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
         <javacc-plugin.version>2.6</javacc-plugin.version>
