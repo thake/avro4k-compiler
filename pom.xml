@@ -67,7 +67,7 @@
         <slf4j.version>2.0.1</slf4j.version>
         <junit.version>5.9.0</junit.version>
         <exec-plugin.version>3.1.0</exec-plugin.version>
-        <surefire-plugin.version>3.0.0-M7</surefire-plugin.version>
+        <surefire-plugin.version>3.0.0-M8</surefire-plugin.version>
         <javacc-plugin.version>2.6</javacc-plugin.version>
         <jar-plugin.version>3.3.0</jar-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
