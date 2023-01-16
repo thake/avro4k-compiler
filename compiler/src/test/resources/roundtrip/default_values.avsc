@@ -34,6 +34,20 @@
       "default": "Str"
     },
     {
+      "name": "enumValue",
+      "type": {
+        "type": "enum",
+        "name": "Suit",
+        "symbols": [
+          "SPADES",
+          "HEARTS",
+          "DIAMONDS",
+          "CLUBS"
+        ]
+      },
+      "default": "SPADES"
+    },
+    {
       "name": "decimalValue",
       "type": [
         "null",
