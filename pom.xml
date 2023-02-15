@@ -71,7 +71,7 @@
         <javacc-plugin.version>2.6</javacc-plugin.version>
         <jar-plugin.version>3.3.0</jar-plugin.version>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.7.10</kotlin.version>
+        <kotlin.version>1.8.10</kotlin.version>
         <maven.version>3.8.6</maven.version>
         <file-management.version>3.1.0</file-management.version>
     </properties>
