@@ -568,6 +568,9 @@ public class Avro4kCompiler {
         if (defaultValue == JsonProperties.NULL_VALUE) {
             return "null";
         }
+        if (field.schema().getType() == Schema.Type.ENUM) {
+            return fullName(field.schema()) + "." + defaultValue;
+        }
         Optional<LogicalTypeConversion> logicalType = getLogicalTypeConversion(field.schema());
         if (logicalType.isPresent()) {
             return logicalType.get().getKotlinDefaultString(field.schema(), defaultValue);
